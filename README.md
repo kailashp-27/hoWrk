@@ -1,94 +1,63 @@
 # hoWrk
 
-A full-stack web application built for a hackathon. **hoWrk** consists of a React + TypeScript frontend (Vite) and a Python FastAPI backend. The app enables users — citizens, guardians, and authorities — to register, log in, and interact with live incident maps and dashboards.
+A hackathon project that brings incident reporting, guardian support, and emergency resource mapping into one app. Citizens, guardians, and authorities get separate dashboards around a shared map.
 
-## 🚀 Tech Stack
+The frontend uses React, TypeScript, Vite, and Leaflet. The FastAPI backend stores records in Firebase Firestore and includes Twilio calls for assistance and guardian alerts.
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React, TypeScript, Vite, Tailwind CSS |
-| **Backend** | Python 3, FastAPI |
-| **Auth** | JWT (`auth.py`) |
-| **Database** | SQLite / Firebase |
-| **Testing** | pytest |
+## Main workflows
 
-## 📁 Project Structure
+- Citizens can report incidents and view nearby reports and resources.
+- Guardians can register their location and availability.
+- Authorities can review incidents, acknowledge reports, and manage resources.
+- Users can save an emergency contact and request assistance.
+- Route previews show nearby incident warnings and a simple safety score.
 
-```text
-hoWrk/
-├── backend/               # Python FastAPI server
-│   ├── main.py            # API entrypoint
-│   ├── auth.py            # JWT authentication
-│   ├── database.py        # DB connection
-│   ├── models.py          # ORM models
-│   ├── schemas.py         # Pydantic schemas
-│   ├── test_api.py        # Backend tests
-│   └── req.txt            # Python dependencies
-├── src/                   # React application
-│   ├── App.tsx            # Root component
-│   ├── main.tsx           # Entry point
-│   ├── index.css          # Global styles
-│   └── components/        # UI components
-├── index.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── req.txt                # Root-level Python deps
-└── README.md
-```
+Route scoring is a proximity heuristic over stored incidents. It does not find a proven safest route; when street routing is unavailable, the backend falls back to a direct path.
 
-## 🧰 Prerequisites
+## Run locally
 
-- Node.js >= 16.x
-- Python 3.10+
-- pip
+Use Node.js 22.12+ and Python 3.11+. You also need a Firebase project with Firestore enabled and a service account key.
 
-## 🏁 Running Locally
+Place the key at `backend/firebase-key.json`. This exact path is used by the database module; setting `GOOGLE_APPLICATION_CREDENTIALS` alone does not replace it.
 
-### Backend
+From the repository root, copy `.env.example` to `.env`. For call features, fill in `TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`, and `ASSISTANCE_TO` with your own configuration.
+
+Start the backend:
 
 ```bash
 cd backend
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
-
+python -m venv .venv
+source .venv/bin/activate
 pip install -r req.txt
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8000
 ```
 
-> API will be available at `http://localhost:8000`
+On Windows, activate with `.venv\Scripts\activate`.
 
-### Frontend
+In another terminal, from the repository root:
 
 ```bash
-# From project root
 npm install
 npm run dev
 ```
 
-> App will be available at `http://localhost:5173`
+Open [localhost:3000](http://localhost:3000). The API runs on [localhost:8000](http://localhost:8000), with interactive documentation at `/docs`. Firestore-backed actions require the service account file even if the server starts without it.
 
-## 🧪 Running Tests
+## Development
 
 ```bash
-cd backend
-pytest test_api.py
+npm run lint
+npm run build
 ```
 
-## 📦 Deployment
+`npm run lint` runs TypeScript checks. `backend/test_api.py` is a manual API smoke script that registers a test account and reports an incident against a running server; use a development Firebase project if running it.
 
-- **Frontend:** `npm run build` → outputs to `dist/`
-- **Backend:** Deploy with Docker or any Python-compatible cloud host (Render, Railway, etc.)
+## Code guide
 
-## 📝 Notes
+- `src/components/`: role dashboards, incident maps, forms, and SOS controls.
+- `backend/main.py`: incident, resource, guardian, contact, and navigation endpoints.
+- `backend/database.py`: Firebase Admin and Firestore setup.
+- `backend/auth.py`: password hashing and JWT handling.
+- `.env.example`: call-service configuration template.
 
-- Copy `.env.example` to `.env` and fill in your credentials before running.
-- `firebase-key.json` is excluded via `.gitignore` — add your own if using Firebase.
-
----
-
-© 2026 hoWrk Team
+The project is a hackathon prototype. JWT settings are currently fixed in `backend/auth.py`; the similarly named values in `.env.example` are not read by that module.
